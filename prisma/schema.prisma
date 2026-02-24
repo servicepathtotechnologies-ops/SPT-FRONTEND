@@ -1,0 +1,49 @@
+// SPT Solutions – Database schema (PostgreSQL)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  email       String
+  name        String?
+  company     String?
+  message     String?
+  service     String?
+  source      String?  // contact | chat | recommendation
+  createdAt   DateTime @default(now())
+  metadata    Json?
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  messages  Json     // [{ role, content }]
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  email     String
+  name      String
+  company   String?
+  date      DateTime
+  service   String?
+  notes     String?
+  confirmed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  passwordHash String
+  createdAt DateTime @default(now())
+}

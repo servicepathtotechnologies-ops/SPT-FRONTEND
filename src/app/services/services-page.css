@@ -1,0 +1,53 @@
+/* Services showcase – single font (Inter via --font-sans) */
+.services-page {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+}
+
+.services-page .font-heading {
+  font-family: var(--font-sans);
+}
+
+/* Animated gradient text (shifting hue) */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.services-page .gradient-text-animated {
+  background: linear-gradient(90deg, var(--accent), var(--accent-secondary), var(--accent));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .services-page .gradient-text-animated {
+    animation: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .services-page [style*="animation: pulse"] {
+    animation: none;
+  }
+}

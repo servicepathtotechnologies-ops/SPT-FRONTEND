@@ -1,0 +1,46 @@
+{
+  "name": "spt-solutions",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@hookform/resolvers": "^3.9.1",
+    "@prisma/client": "^6.1.0",
+    "@react-three/drei": "^9.117.3",
+    "@react-three/fiber": "^10.0.0-alpha.2",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^11.11.17",
+    "gsap": "^3.12.5",
+    "lenis": "^1.3.17",
+    "lucide-react": "^0.460.0",
+    "next": "16.1.6",
+    "prisma": "^6.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.53.2",
+    "resend": "^4.0.1",
+    "three": "^0.181.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.170.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
