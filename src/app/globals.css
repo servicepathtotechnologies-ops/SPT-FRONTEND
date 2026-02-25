@@ -158,6 +158,17 @@ p {
   color: var(--text-secondary);
 }
 
+/* Navbar logo: perfect circle, no background or box */
+.navbar-logo-wrap,
+.navbar-logo-wrap *,
+.navbar-logo-wrap *::before,
+.navbar-logo-wrap *::after {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 50% !important;
+}
+
 /* Custom cursor: only on devices with fine pointer (desktop) */
 @media (pointer: fine) {
   body.has-custom-cursor *,

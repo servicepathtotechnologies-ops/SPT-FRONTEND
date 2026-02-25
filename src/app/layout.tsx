@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Analytics } from "@/components/analytics/Analytics";
@@ -24,8 +23,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Service Path Technologies | Enterprise Technology Solutions",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/sptlogo.png?v=2",   // Favicon (browser tab) – SPT logo
+    apple: "/sptlogo.png?v=2",
   },
   description:
     "Enterprise technology solutions that streamline operations, unlock insights, and drive measurable business outcomes.",
@@ -53,6 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/sptlogo.png?v=2" type="image/png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var t=localStorage.getItem("spt-theme");var p=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";var theme=(t==="light"||t==="dark")?t:p;document.documentElement.classList.add(theme);})();`,
@@ -67,7 +67,6 @@ export default function RootLayout({
           <SmoothScroll>
             <Navbar />
             <main className="flex-1">{children}</main>
-            <Footer />
           </SmoothScroll>
           <ChatWidget />
           <Analytics />

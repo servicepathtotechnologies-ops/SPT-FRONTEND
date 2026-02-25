@@ -9,12 +9,15 @@ export const metadata: Metadata = {
 
 export default function BookDemoPage() {
   return (
-    <div className="min-h-screen pt-28 md:pt-36 pb-24" style={{ background: "var(--bg-primary)" }}>
-      <div className="max-w-2xl mx-auto px-6 lg:px-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-[var(--text-primary)] text-center mb-4">
+    <div
+      className="h-screen flex flex-col overflow-hidden pt-20 md:pt-24 pb-6"
+      style={{ background: "var(--bg-primary)" }}
+    >
+      <div className="flex-1 min-h-0 flex flex-col max-w-2xl w-full mx-auto px-5 sm:px-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] text-center mb-1.5 shrink-0">
           Book a Demo
         </h1>
-        <p className="text-lg text-[var(--text-secondary)] text-center mb-12">
+        <p className="text-sm text-[var(--text-secondary)] text-center mb-4 shrink-0">
           Pick a time that works for you. We&apos;ll send a confirmation and calendar invite.
         </p>
         <BookingForm />

@@ -1,100 +1,223 @@
 "use client";
 
 /**
- * Floating chat widget: light theme — white card, indigo header bar, clean bubbles.
+ * Rule-based chatbot: predefined responses and button flows.
+ * No AI, no API calls. Real-time feel with typing delay.
  */
-import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send } from "lucide-react";
 import {
-  CHAT_PRESETS,
-  CHAT_WITH_US_ID,
-  CHAT_WITH_US_ANSWER,
-} from "@/lib/chatPresets";
+  CHAT_OPTIONS,
+  BOT_PROMPT,
+  UNKNOWN_RESPONSE,
+  ABOUT_RESPONSE,
+  CHAT_WITH_US_RESPONSE,
+  isGreeting,
+  type ChatOption,
+  type ChatOptionId,
+} from "@/lib/chatRules";
+
+const TYPING_DELAY_MS = 900;
 
 export type ChatMessage = {
+  id: string;
   role: "user" | "assistant";
   content: string;
-  link?: { href: string; text: string };
-};
-
-const WELCOME_MESSAGE: ChatMessage = {
-  role: "assistant",
-  content:
-    "Hi! I'm the Service Path Technologies assistant. Choose a topic below or type your question—I'm here to help.",
 };
 
 export function ChatWidget() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [showOptions, setShowOptions] = useState(false);
+  const [showContinueChat, setShowContinueChat] = useState(false);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const chatBodyRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasOpenedOnceRef = useRef(false);
+  const messageIdRef = useRef(0);
 
+  // Auto-scroll chat body to bottom when content changes (messages, options, typing)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const el = chatBodyRef.current;
+    if (!el) return;
+    const scrollToBottom = () => {
+      el.scrollTop = el.scrollHeight;
+    };
+    scrollToBottom();
+    // Run again after layout/paint so new content is included
+    const raf = requestAnimationFrame(() => scrollToBottom());
+    const t = setTimeout(scrollToBottom, 100);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
+  }, [messages, showOptions, showContinueChat, isTyping]);
 
-  const showQuickOptions = messages.length === 1 && messages[0].role === "assistant";
-
-  function handlePresetClick(presetId: string) {
-    if (presetId === CHAT_WITH_US_ID) {
-      setMessages((m) => [...m, { role: "assistant", content: CHAT_WITH_US_ANSWER }]);
-      return;
+  // Clear typing timeout when chat closes
+  useEffect(() => {
+    if (!open && typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+      setIsTyping(false);
     }
-    const preset = CHAT_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+  }, [open]);
+
+  // When reopening chat and there are messages but no options/continue visible, show "Continue chat"
+  useEffect(() => {
+    if (open && hasOpenedOnceRef.current && messages.length > 0 && !showOptions && !showContinueChat) {
+      setShowContinueChat(true);
+    }
+  }, [open, messages.length, showOptions, showContinueChat]);
+
+  /**
+   * Initialize chatbot: on first open, show "How can I help you today?" + options.
+   * Called when user opens the chat for the first time.
+   */
+  function initializeChatbot() {
+    if (hasOpenedOnceRef.current) return;
+    hasOpenedOnceRef.current = true;
+    simulateTyping(() => {
+      addBotMessage(BOT_PROMPT);
+      showOptionsButtons();
+    });
+  }
+
+  /** Add a user message to the chat */
+  function addUserMessage(message: string) {
+    if (!message.trim()) return;
+    messageIdRef.current += 1;
     setMessages((m) => [
       ...m,
-      { role: "user", content: preset.label },
-      {
-        role: "assistant",
-        content: preset.answer,
-        link: preset.link,
-      },
+      { id: `u-${messageIdRef.current}`, role: "user", content: message.trim() },
     ]);
   }
 
-  async function handleSend() {
-    const text = input.trim();
-    if (!text || loading) return;
-    setInput("");
-    setMessages((m) => [...m, { role: "user", content: text }]);
-    setLoading(true);
-    try {
-      const apiMessages = messages.map(({ role, content }) => ({ role, content }));
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...apiMessages, { role: "user", content: text }],
-          sessionId:
-            typeof window !== "undefined"
-              ? sessionStorage.getItem("chatSessionId")
-              : null,
-        }),
+  /** Add a bot message to the chat */
+  function addBotMessage(message: string) {
+    messageIdRef.current += 1;
+    setMessages((m) => [
+      ...m,
+      { id: `b-${messageIdRef.current}`, role: "assistant", content: message },
+    ]);
+  }
+
+  /** Show the five option buttons only (no "How can I help you today?" text) */
+  function showOptionsButtons() {
+    setShowContinueChat(false);
+    setShowOptions(true);
+  }
+
+  /** After a bot response: show "Continue chat" so user can get back to options */
+  function showContinueChatButton() {
+    setShowOptions(false);
+    setShowContinueChat(true);
+  }
+
+  /** Hide option buttons (e.g. after user clicks one) */
+  function hideOptions() {
+    setShowOptions(false);
+  }
+
+  /**
+   * Simulate typing delay (800–1000ms) then run callback.
+   * Used so bot messages feel real-time.
+   */
+  function simulateTyping(callback: () => void) {
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    setIsTyping(true);
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+      callback();
+      setIsTyping(false);
+    }, TYPING_DELAY_MS);
+  }
+
+  /**
+   * Handle when user clicks an option button.
+   * Contact → redirect /contact
+   * About → show about text + options again
+   * Book appointment → redirect /book-demo
+   * Our services → scroll to #services or redirect /services
+   * Chat with us → show contact info + options again
+   */
+  function handleOptionClick(option: ChatOption) {
+    hideOptions();
+    addUserMessage(option.label);
+
+    // After bot response: show "Continue chat" (options show only when user clicks it)
+    const runAfterTyping = (response: string) => {
+      simulateTyping(() => {
+        addBotMessage(response);
+        showContinueChatButton();
       });
-      const data = await res.json();
-      if (data.message) {
-        setMessages((m) => [...m, { role: "assistant", content: data.message }]);
+    };
+
+    switch (option.id as ChatOptionId) {
+      case "contact-details":
+        router.push("/contact");
+        return;
+      case "about-the-company":
+        runAfterTyping(ABOUT_RESPONSE);
+        return;
+      case "book-appointment":
+        router.push("/book-demo");
+        return;
+      case "our-services": {
+        const el = typeof document !== "undefined" ? document.getElementById("services") : null;
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+          setOpen(false);
+        } else {
+          router.push("/services");
+        }
+        return;
       }
-      if (data.sessionId && typeof window !== "undefined") {
-        sessionStorage.setItem("chatSessionId", data.sessionId);
-      }
-    } catch {
-      setMessages((m) => [
-        ...m,
-        {
-          role: "assistant",
-          content:
-            "Sorry, I couldn't reach the server. Please try again or email us at servicepathtotechnologies@gmail.com.",
-        },
-      ]);
-    } finally {
-      setLoading(false);
+      case "chat-with-us":
+        runAfterTyping(CHAT_WITH_US_RESPONSE);
+        return;
+      default:
+        runAfterTyping(UNKNOWN_RESPONSE);
     }
   }
+
+  /** User clicked "Continue chat" → show only the five options (no extra text) */
+  function handleContinueChat() {
+    setShowContinueChat(false);
+    setShowOptions(true);
+  }
+
+  /**
+   * Handle user text input. "How can I help you today?" only on first open.
+   * After any reply: show "Continue chat" so user can see options again.
+   */
+  function handleUserInput(message: string) {
+    const text = message.trim();
+    if (!text || isTyping) return;
+
+    addUserMessage(text);
+    setInput("");
+
+    if (isGreeting(text)) {
+      simulateTyping(() => showContinueChatButton());
+    } else {
+      simulateTyping(() => {
+        addBotMessage(UNKNOWN_RESPONSE);
+        showContinueChatButton();
+      });
+    }
+  }
+
+  const handleSend = useCallback(
+    (e?: React.FormEvent) => {
+      e?.preventDefault();
+      handleUserInput(input);
+    },
+    [input, isTyping]
+  );
 
   return (
     <>
@@ -107,15 +230,28 @@ export function ChatWidget() {
             className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] rounded-2xl border shadow-[var(--shadow-hover)] flex flex-col overflow-hidden"
             style={{ borderColor: "var(--border)", background: "var(--bg-card)" }}
           >
-            <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-accent-soft)]">
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{
+                borderColor: "var(--color-border)",
+                background: "var(--color-bg-accent-soft)",
+              }}
+            >
               <div className="flex items-center gap-2">
                 <span
                   className="flex items-center justify-center w-8 h-8 rounded-lg border"
-                  style={{ background: "var(--bg-card)", color: "var(--accent)", borderColor: "var(--border)" }}
+                  style={{
+                    background: "var(--bg-card)",
+                    color: "var(--accent)",
+                    borderColor: "var(--border)",
+                  }}
                 >
                   <MessageCircle className="w-4 h-4" strokeWidth={2.5} />
                 </span>
-                <span className="font-semibold" style={{ color: "var(--color-text-heading)" }}>
+                <span
+                  className="font-semibold"
+                  style={{ color: "var(--color-text-heading)" }}
+                >
                   Service Path Assistant
                 </span>
               </div>
@@ -128,100 +264,141 @@ export function ChatWidget() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
             <div
-              className="h-[360px] overflow-y-auto p-4 space-y-4 flex flex-col"
-              style={{ background: "var(--bg-primary)", color: "var(--color-text-body)" }}
+              ref={chatBodyRef}
+              className="h-[360px] min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 flex flex-col"
+              style={{
+                background: "var(--bg-primary)",
+                color: "var(--color-text-body)",
+              }}
             >
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={
-                    msg.role === "user" ? "flex justify-end" : "flex justify-start"
-                  }
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}
                 >
                   <div
                     className={
                       msg.role === "user"
                         ? "rounded-2xl rounded-br-md px-4 py-2 max-w-[85%] text-white"
-                        : "rounded-2xl rounded-bl-md border border-[var(--color-border)] bg-[var(--color-bg-alt)] px-4 py-2 max-w-[85%]"
+                        : "rounded-2xl rounded-bl-md border px-4 py-2 max-w-[85%]"
                     }
                     style={
                       msg.role === "user"
                         ? { background: "var(--gradient-brand)" }
-                        : { color: "var(--color-text-body)" }
+                        : {
+                            borderColor: "var(--color-border)",
+                            background: "var(--color-bg-alt)",
+                            color: "var(--color-text-body)",
+                          }
                     }
                   >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                    {msg.role === "assistant" && msg.link && (
-                      <Link
-                        href={msg.link.href}
-                        className="mt-2 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline"
-                      >
-                        {msg.link.text} →
-                      </Link>
-                    )}
+                    <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-              {showQuickOptions && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--color-text-muted)" }}>
-                    Quick options
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {CHAT_PRESETS.map((preset) => (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        onClick={() => handlePresetClick(preset.id)}
-                        className="rounded-full border border-[var(--color-border)] px-3 py-1.5 text-sm hover:border-[var(--color-primary)] hover:bg-[var(--color-bg-accent-soft)] hover:text-[var(--color-primary)] transition-colors"
-                        style={{ background: "var(--bg-card)", color: "var(--color-text-body)" }}
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => handlePresetClick(CHAT_WITH_US_ID)}
-                      className="rounded-full px-3 py-1.5 text-sm border transition-opacity hover:opacity-90"
-                      style={{ background: "var(--accent-subtle)", color: "var(--accent)", borderColor: "var(--border)" }}
+
+              {isTyping && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start"
+                >
+                  <div
+                    className="rounded-2xl rounded-bl-md border px-4 py-2.5"
+                    style={{
+                      borderColor: "var(--color-border)",
+                      background: "var(--color-bg-alt)",
+                    }}
+                  >
+                    <span
+                      className="text-sm animate-pulse"
+                      style={{ color: "var(--color-text-muted)" }}
                     >
-                      Chat with us
-                    </button>
-                  </div>
-                </div>
-              )}
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="rounded-2xl rounded-bl-md border border-[var(--color-border)] bg-[var(--color-bg-alt)] px-4 py-2">
-                    <span className="animate-pulse" style={{ color: "var(--color-text-muted)" }}>
-                      Thinking...
+                      Typing...
                     </span>
                   </div>
-                </div>
+                </motion.div>
               )}
-              <div ref={bottomRef} />
+
+              {showContinueChat && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex justify-start"
+                >
+                  <button
+                    type="button"
+                    onClick={handleContinueChat}
+                    className="rounded-full border px-4 py-2.5 text-sm font-medium transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-bg-accent-soft)] hover:text-[var(--color-primary)]"
+                    style={{
+                      background: "var(--bg-card)",
+                      color: "var(--color-text-body)",
+                      borderColor: "var(--border)",
+                    }}
+                  >
+                    Continue chat
+                  </button>
+                </motion.div>
+              )}
+
+              {showOptions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-wrap gap-2"
+                >
+                  {CHAT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleOptionClick(opt)}
+                      className="rounded-full border px-3 py-2 text-sm transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-bg-accent-soft)] hover:text-[var(--color-primary)]"
+                      style={{
+                        background: "var(--bg-card)",
+                        color: "var(--color-text-body)",
+                        borderColor: "var(--border)",
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
             </div>
+
             <form
               className="p-4 border-t flex gap-2"
-              style={{ borderColor: "var(--color-border)", background: "var(--bg-card)" }}
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
+              style={{
+                borderColor: "var(--color-border)",
+                background: "var(--bg-card)",
               }}
+              onSubmit={handleSend}
             >
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about our services..."
-                className="flex-1 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-bg-alt)] px-4 py-2.5 text-[var(--color-text-heading)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                placeholder="Type a message..."
+                className="flex-1 rounded-xl border bg-[var(--color-bg-alt)] px-4 py-2.5 text-sm text-[var(--color-text-heading)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                style={{ borderColor: "var(--color-border-strong)" }}
+                disabled={isTyping}
               />
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isTyping}
                 className="flex items-center justify-center w-11 h-11 rounded-xl border hover:opacity-90 disabled:opacity-50 transition-opacity"
-                style={{ background: "var(--accent-subtle)", color: "var(--accent)", borderColor: "var(--border)" }}
+                style={{
+                  background: "var(--accent-subtle)",
+                  color: "var(--accent)",
+                  borderColor: "var(--border)",
+                }}
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -229,8 +406,13 @@ export function ChatWidget() {
           </motion.div>
         )}
       </AnimatePresence>
+
       <motion.button
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          const nextOpen = !open;
+          setOpen(nextOpen);
+          if (nextOpen) initializeChatbot();
+        }}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center border hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
         style={{
           background: "var(--bg-card)",

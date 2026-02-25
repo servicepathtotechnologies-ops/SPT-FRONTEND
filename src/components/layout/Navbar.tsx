@@ -87,14 +87,15 @@ export function Navbar() {
           aria-label="Service Path Technologies Home"
         >
           <span className="flex items-center gap-3">
-            <span className="relative inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-xl">
+            <span className="navbar-logo-wrap relative inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full">
               <NextImage
-                src="/logo.png"
-                alt="Service Path Technologies"
+                src="/sptlogo.png?v=2"
+                alt="Service Path Technologies (SPT logo)"
                 fill
                 sizes="36px"
                 className="object-contain"
                 priority
+                unoptimized
               />
             </span>
             <span>
