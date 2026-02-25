@@ -7,6 +7,8 @@ export interface ServiceShowcaseItem {
   name: string;
   description: string;
   image: string;
+  /** Optional image for homepage only; service page and detail page use `image` */
+  homeImage?: string;
   icon: string; // lucide-react icon name
   howItWorks: [string, string, string, string];
   benefits: string[];
@@ -21,6 +23,7 @@ export const servicesShowcaseData: ServiceShowcaseItem[] = [
     description:
       "Deploy intelligent chatbots for support, sales, and engagement trained on your data. They handle natural language, integrate with your channels, and scale 24/7.",
     image: "/images/services/ai-chatbots-hello.png",
+    homeImage: "/images/services/chatbot2.jpg",
     icon: "MessageSquare",
     howItWorks: [
       "Audit your use case and data sources",

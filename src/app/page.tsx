@@ -7,6 +7,7 @@ import { ValueProposition } from "@/components/home/ValueProposition";
 import { CaseStudies } from "@/components/home/CaseStudies";
 import { Testimonials } from "@/components/home/Testimonials";
 import { HomeCTA } from "@/components/home/HomeCTA";
+import { Footer } from "@/components/layout/Footer";
 
 export default function HomePage() {
   return (
@@ -20,6 +21,7 @@ export default function HomePage() {
       <CaseStudies />
       <Testimonials />
       <HomeCTA />
+      <Footer />
     </>
   );
 }

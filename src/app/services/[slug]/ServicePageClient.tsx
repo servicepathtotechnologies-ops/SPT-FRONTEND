@@ -30,19 +30,10 @@ export function ServicePageClient({ service, details }: Props) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
-              <motion.span
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-sm font-medium"
-                style={{ color: "var(--accent)" }}
-              >
-                Service
-              </motion.span>
               <motion.h1
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="mt-2 text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--text-primary)]"
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--text-primary)]"
               >
                 {service.name}
               </motion.h1>
@@ -74,14 +65,14 @@ export function ServicePageClient({ service, details }: Props) {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2, duration: 0.4 }}
-              className={`relative aspect-[4/3] lg:aspect-square ${service.slug === "ai-chatbots" ? "overflow-visible bg-transparent" : "rounded-2xl overflow-hidden border shadow-[var(--shadow-card)]"}`}
-              style={service.slug !== "ai-chatbots" ? { borderColor: "var(--border)" } : undefined}
+              className="relative aspect-[4/3] lg:aspect-square rounded-2xl overflow-hidden border shadow-[var(--shadow-card)]"
+              style={{ borderColor: "var(--border)" }}
             >
               <Image
                 src={service.image}
                 alt={service.name}
                 fill
-                className={service.slug === "ai-chatbots" ? "object-contain" : "object-cover"}
+                className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />

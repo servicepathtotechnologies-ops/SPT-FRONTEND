@@ -109,12 +109,12 @@ export default function ServicesAccordion() {
                     className={`mobile-expand ${expandedMobileIndex === index ? "open" : ""}`}
                   >
                     <div className="pb-4 space-y-4">
-                      <div className={`relative w-full aspect-video ${service.slug === "ai-chatbots" ? "overflow-visible bg-transparent" : "rounded-xl overflow-hidden bg-[var(--glass-bg)] border border-[var(--glass-border)]"}`}>
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-[var(--glass-bg)] border border-[var(--glass-border)]">
                         <Image
                           src={service.image}
                           alt={service.name}
                           fill
-                          className={service.slug === "ai-chatbots" ? "object-contain" : "object-cover"}
+                          className="object-cover"
                           sizes="100vw"
                         />
                       </div>
@@ -139,19 +139,17 @@ export default function ServicesAccordion() {
                 willChange: "opacity",
               }}
             >
-              {/* Image — 4:5 portrait; no container for transparent PNG (AI Chatbots) */}
-              <div className={`relative w-full aspect-[4/5] ${services[activeIndex].slug === "ai-chatbots" ? "overflow-visible bg-transparent" : "rounded-2xl overflow-hidden bg-[var(--glass-bg)] border border-[var(--glass-border)]"}`}>
+              {/* Image — 4:5 portrait with rounded corners */}
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-[var(--glass-bg)] border border-[var(--glass-border)]">
                 <Image
                   src={services[activeIndex].image}
                   alt={services[activeIndex].name}
                   fill
-                  className={services[activeIndex].slug === "ai-chatbots" ? "object-contain" : "object-cover"}
+                  className="object-cover"
                   sizes="(max-width: 1024px) 0px, 420px"
                   priority={activeIndex < 3}
                 />
-                {services[activeIndex].slug !== "ai-chatbots" && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
 
               {/* Service name below image */}
