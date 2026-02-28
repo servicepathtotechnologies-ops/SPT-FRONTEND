@@ -157,7 +157,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 rounded-lg text-sm font-semibold text-white hover:opacity-90 disabled:opacity-70 transition-opacity flex items-center justify-center gap-2 mt-1"
+        className="w-full py-3.5 rounded-lg text-sm font-semibold text-white hover:opacity-90 disabled:opacity-70 transition-opacity flex items-center justify-center gap-2 mt-2 mb-2 shrink-0 min-h-[48px]"
         style={{ background: "var(--gradient-brand)" }}
       >
         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

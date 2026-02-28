@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden pt-20 md:pt-24 pb-6"
+      className="min-h-screen flex flex-col overflow-y-auto pt-20 md:pt-24 pb-24 md:pb-12"
       style={{ background: "var(--bg-primary)" }}
     >
-      <div className="flex-1 min-h-0 w-full max-w-6xl mx-auto px-5 sm:px-8 flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch">
+      <div className="flex-1 w-full max-w-6xl mx-auto px-5 sm:px-8 flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch lg:min-h-0">
         {/* Left: form */}
         <div className="flex flex-col min-w-0 lg:flex-1">
           <div className="mb-5">
@@ -25,14 +25,14 @@ export default function ContactPage() {
             </p>
           </div>
           <div
-            className="flex-1 min-h-0 rounded-2xl border flex flex-col"
+            className="rounded-2xl border flex flex-col lg:flex-1 lg:min-h-0"
             style={{
               borderColor: "var(--border)",
               background: "var(--bg-card)",
               boxShadow: "var(--shadow-card)",
             }}
           >
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 pb-8">
               <ContactForm />
             </div>
           </div>
