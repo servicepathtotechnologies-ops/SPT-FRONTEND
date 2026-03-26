@@ -1,10 +1,35 @@
 "use client";
 
-import { Check, ArrowRight } from "lucide-react";
+import { 
+  Check, 
+  ArrowRight, 
+  MessageSquare, 
+  Zap, 
+  Code2, 
+  Image as ImageIcon, 
+  Video, 
+  Mic, 
+  BarChart3, 
+  Megaphone, 
+  Headphones, 
+  Sparkles 
+} from "lucide-react";
 import Link from "next/link";
-import { useRef, useEffect, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { servicesShowcaseData, type ServiceShowcaseItem } from "@/lib/servicesShowcaseData";
+
+const iconMap: Record<string, any> = {
+  MessageSquare,
+  Zap,
+  Code2,
+  Image: ImageIcon,
+  Video,
+  Mic,
+  BarChart3,
+  Megaphone,
+  Headphones,
+  Sparkles,
+};
 
 const fadeUp = {
   initial: { opacity: 0, y: 40 },
@@ -13,287 +38,343 @@ const fadeUp = {
   transition: { duration: 0.5, ease: "easeOut" },
 };
 
-function SectionWrapper({
-  id,
-  children,
-  className = "",
-}: {
-  id: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { margin: "-30% 0px -30% 0px", amount: 0.2 });
+function ServiceCard({ service, index }: { service: ServiceShowcaseItem; index: number }) {
+  const IconComponent = iconMap[service.icon] || Zap;
+
   return (
-    <section
-      id={id}
-      ref={ref}
-      className={`scroll-mt-24 md:scroll-mt-28 ${className}`}
-      data-active={isInView ? "true" : undefined}
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, delay: (index % 2) * 0.1 }}
+      className="group relative flex flex-col h-full rounded-2xl border overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
+      style={{ 
+        borderColor: "var(--border)", 
+        background: "rgba(255, 255, 255, 0.015)",
+        backdropFilter: "blur(8px)"
+      }}
     >
-      {children}
-    </section>
-  );
-}
-
-function StickyNav({ serviceIds, activeId }: { serviceIds: string[]; activeId: string | null }) {
-  return (
-    <nav
-      className="sticky top-20 md:top-24 z-30 py-3 px-4 -mx-4 overflow-x-auto backdrop-blur-md border-b"
-      style={{ background: "color-mix(in srgb, var(--bg-primary) 90%, transparent)", borderColor: "var(--border)" }}
-      aria-label="Services"
-    >
-      <div className="flex gap-2 min-w-max max-w-7xl mx-auto">
-        {serviceIds.map((id) => {
-          const label = servicesShowcaseData.find((s) => s.id === id)?.name ?? id;
-          const isActive = activeId === id;
-          return (
-            <a
-              key={id}
-              href={`#${id}`}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                isActive ? "text-white" : "hover:bg-[var(--bg-secondary)]"
-              }`}
-              style={{
-                color: isActive ? undefined : "var(--text-muted)",
-                background: isActive ? "var(--accent)" : undefined,
-              }}
-            >
-              {label}
-            </a>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-function ServiceSection({
-  service,
-  index,
-}: {
-  service: ServiceShowcaseItem;
-  index: number;
-}) {
-  const imageFirst = index % 2 === 0;
-
-  return (
-    <SectionWrapper id={service.id} className="py-16 md:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className={`grid lg:grid-cols-2 gap-12 lg:gap-16 items-center ${!imageFirst ? "lg:flex-row-reverse" : ""}`}
+      {/* Image Header - Slightly more compact aspect ratio */}
+      <div className="aspect-[21/9] md:aspect-[16/8] relative overflow-hidden">
+        <img
+          src={service.image}
+          alt={service.name}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-transparent to-transparent opacity-80" />
+        
+        {/* Compact Icon Badge */}
+        <div 
+          className="absolute bottom-3 left-4 p-2.5 rounded-xl backdrop-blur-xl border border-white/10 shadow-lg transition-all duration-300 group-hover:scale-110"
+          style={{ background: "rgba(255, 255, 255, 0.08)" }}
         >
-          {/* Image — no container for transparent PNG (e.g. AI Chatbots) */}
-          <motion.div
-            className={`relative rounded-2xl overflow-hidden border shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-hover)] ${imageFirst ? "lg:order-1" : "lg:order-2"}`}
-            style={{ borderColor: "var(--border)" }}
-            initial={{ opacity: 0, x: imageFirst ? -40 : 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5 }}
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className="aspect-[16/10] relative" style={{ background: "var(--bg-section)" }}>
-              <img
-                src={service.image}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                width={1200}
-                height={750}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)]/80 to-transparent pointer-events-none" />
-            </div>
-          </motion.div>
-
-          {/* Content */}
-          <div className={imageFirst ? "lg:order-2" : "lg:order-1"}>
-            <motion.h2
-              {...fadeUp}
-              transition={{ delay: 0.05 }}
-              className="font-heading text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4"
-            >
-              {service.name}
-            </motion.h2>
-            <motion.p
-              {...fadeUp}
-              transition={{ delay: 0.1 }}
-              className="text-lg leading-relaxed mb-8"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              {service.description}
-            </motion.p>
-
-            {/* How it works */}
-            <motion.div {...fadeUp} transition={{ delay: 0.15 }} className="mb-8">
-              <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4">
-                How It Works
-              </h3>
-              <ol className="space-y-3">
-                {service.howItWorks.map((step, i) => (
-                  <li key={step} className="flex gap-3 items-start">
-                    <span className="flex shrink-0 w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center" style={{ background: "var(--accent)" }}>
-                      {i + 1}
-                    </span>
-                    <span className="text-sm md:text-base" style={{ color: "var(--text-secondary)" }}>{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </motion.div>
-
-            {/* Benefits */}
-            <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="mb-8">
-              <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4">
-                Key Benefits
-              </h3>
-              <ul className="grid sm:grid-cols-2 gap-2">
-                {service.benefits.map((b) => (
-                  <li key={b} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    <Check className="w-4 h-4 shrink-0" style={{ color: "var(--accent)" }} />
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-
-            {/* Technologies */}
-            <motion.div {...fadeUp} transition={{ delay: 0.3 }} className="mb-8">
-              <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4">
-                Technologies Used
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {service.technologies.map((t) => (
-                  <span
-                    key={t}
-                    className="px-3 py-1.5 rounded-xl text-sm"
-                    style={{ background: "var(--accent-subtle)", border: "1px solid var(--border)", color: "var(--accent)" }}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div {...fadeUp} transition={{ delay: 0.35 }}>
-              <Link
-                href="/book-demo"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-white hover:scale-105 transition-all"
-                style={{ background: "var(--accent)" }}
-              >
-                Book a Free Demo
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </motion.div>
-          </div>
+          <IconComponent className="w-5 h-5 text-white" />
         </div>
       </div>
-    </SectionWrapper>
+
+      <div className="p-5 md:p-6 flex flex-col flex-grow">
+        <h3 className="font-heading text-lg md:text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent)] transition-colors">
+          {service.name}
+        </h3>
+        <p className="text-xs md:text-sm text-[var(--text-secondary)] mb-6 line-clamp-2 leading-relaxed opacity-90">
+          {service.description}
+        </p>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {/* How It Works (Ultra Compact) */}
+          <div>
+            <h4 className="text-[9px] font-bold text-[var(--accent)] uppercase tracking-[0.15em] mb-3">
+              Process
+            </h4>
+            <ul className="space-y-2">
+              {service.howItWorks.slice(0, 3).map((step, i) => (
+                <li key={i} className="flex gap-2 text-[10px] md:text-[11px] text-[var(--text-secondary)] leading-tight">
+                  <span className="shrink-0 w-3.5 h-3.5 rounded-full bg-[var(--accent-subtle)] text-[var(--accent)] text-[8px] font-bold flex items-center justify-center border border-[var(--accent)]/10">
+                    {i + 1}
+                  </span>
+                  <span className="line-clamp-2">{step}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Benefits (Ultra Compact) */}
+          <div>
+            <h4 className="text-[9px] font-bold text-[var(--accent)] uppercase tracking-[0.15em] mb-3">
+              Value
+            </h4>
+            <ul className="space-y-2">
+              {service.benefits.slice(0, 3).map((benefit, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-[10px] md:text-[11px] text-[var(--text-secondary)] leading-tight">
+                  <Check className="w-3 h-3 shrink-0 text-[var(--accent)] mt-0.5" />
+                  <span className="line-clamp-2">{benefit}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Compact Tech Tags */}
+        <div className="mb-6 mt-auto">
+          <div className="flex flex-wrap gap-1">
+            {service.technologies.slice(0, 3).map((tech) => (
+              <span 
+                key={tech} 
+                className="text-[9px] font-medium px-2 py-0.5 rounded-md border border-[var(--border)] bg-white/5"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {tech}
+              </span>
+            ))}
+            {service.technologies.length > 3 && (
+              <span className="text-[9px] font-medium px-1 py-0.5" style={{ color: "var(--text-muted)" }}>
+                +{service.technologies.length - 3}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-[var(--border)]/50 flex items-center justify-between">
+          <Link
+            href="/book-demo"
+            className="group/btn inline-flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)] hover:text-[var(--accent)] transition-all"
+          >
+            Details
+            <ArrowRight className="w-3 h-3 transition-transform group-hover/btn:translate-x-1" />
+          </Link>
+          
+          <Link
+             href="/book-demo"
+             className="px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-lg transition-all hover:brightness-110 active:scale-95"
+             style={{ background: "var(--accent)" }}
+          >
+            Demo
+          </Link>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
+
+const cardVariants = {
+  hidden: { 
+    opacity: 0, 
+    y: 48,
+    scale: 0.96,
+  },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      delay: i * 0.08,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    }
+  })
+};
+
 export function ServicesShowcasePage() {
-  const [activeId, setActiveId] = useState<string | null>(servicesShowcaseData[0]?.id ?? null);
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
-
-  useEffect(() => {
-    const sections = servicesShowcaseData.map((s) => s.id);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const id = entry.target.id;
-          if (sections.includes(id)) setActiveId(id);
-        });
-      },
-      { rootMargin: "-25% 0px -60% 0px", threshold: 0 }
-    );
-
-    sections.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) {
-        sectionRefs.current.set(id, el);
-        observer.observe(el);
-      }
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  const serviceIds = servicesShowcaseData.map((s) => s.id);
-
   return (
-    <div className="services-page min-h-screen text-[var(--text-primary)]">
-      {/* Floating orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden>
-        <div
-          className="absolute top-1/4 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: "radial-gradient(circle, var(--accent) 0%, transparent 70%)",
-            animation: "pulse 8s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: "radial-gradient(circle, var(--accent-secondary) 0%, transparent 70%)",
-            animation: "pulse 10s ease-in-out infinite 1s",
-          }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.07] blur-3xl"
-          style={{
-            background: "radial-gradient(circle, var(--accent) 0%, var(--accent-secondary) 50%, transparent 70%)",
-          }}
-        />
-      </div>
+    <div className="services-page min-h-screen bg-muted/20 dark:bg-muted/10 relative overflow-hidden transition-colors duration-500">
+      {/* Subtle background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+        }}
+      />
 
-      {/* Hero */}
-      <section className="relative z-10 pt-28 md:pt-36 pb-16 md:pb-24">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.p
+      {/* Hero Section */}
+      <section className="relative z-10 pt-32 pb-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div 
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-sm font-medium uppercase tracking-widest mb-4"
-            style={{ color: "var(--accent)" }}
+            className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-6"
           >
-            Our Services
-          </motion.p>
-          <motion.h1
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Our Solutions
+          </motion.div>
+          <motion.h1 
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-            className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-6xl font-bold text-foreground mb-6 tracking-tight"
           >
-            <span className="gradient-text-animated">AI That Powers</span>
-            <br />
-            <span className="text-[var(--text-primary)]">Your Business</span>
+            AI That Powers Your <span className="text-primary">Business</span>
           </motion.h1>
-          <motion.p
+          <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-lg md:text-xl max-w-2xl mx-auto"
-            style={{ color: "var(--text-secondary)" }}
+            transition={{ delay: 0.2 }}
+            className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           >
-            From chatbots to custom AI systems—we build, deploy, and optimize production-ready
-            solutions with a dark, futuristic edge.
+            Scale faster with production-ready AI solutions tailored to your unique workflows.
           </motion.p>
         </div>
       </section>
 
-      {/* Sticky nav */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <StickyNav serviceIds={serviceIds} activeId={activeId} />
-      </div>
+      {/* Service Grid Section */}
+      <section className="relative z-10 pb-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+            {servicesShowcaseData.map((service, index) => (
+              <motion.div 
+                key={service.id}
+                id={service.id}
+                custom={index}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={cardVariants}
+                className="scroll-mt-32"
+              >
+                <div 
+                  className="service-card group flex flex-col rounded-2xl border border-border bg-card overflow-hidden shadow-sm transition-all duration-500 ease-out max-h-[calc(100vh-250px)]"
+                  style={{ minHeight: '540px' }}
+                >
+                  {/* ── IMAGE AREA — compact ── */}
+                  <div className="service-image-container relative overflow-hidden h-36 flex-shrink-0">
+                    <img
+                      src={service.image}
+                      alt={service.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                    
+                    {/* Number badge — top right */}
+                    <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                    
+                    {/* Title overlaid on image */}
+                    <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-6">
+                      <h3 className="text-white font-bold text-lg leading-tight drop-shadow-lg">
+                        {service.name}
+                      </h3>
+                    </div>
+                    
+                    {/* Top accent line on hover */}
+                    <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                  </div>
 
-      {/* Service sections */}
-      <div className="relative z-10">
-        {servicesShowcaseData.map((service, index) => (
-          <ServiceSection key={service.id} service={service} index={index} />
-        ))}
-      </div>
+                  {/* ── CONTENT AREA ── */}
+                  <div className="flex flex-col gap-3 p-4 pb-6 flex-1 overflow-hidden">
+                    {/* Description + AI-Powered badge row */}
+                    <div className="flex items-start gap-2">
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+                        {service.description}
+                      </p>
+                      <span className="flex-shrink-0 flex items-center gap-1 text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
+                        <span className="w-1 h-1 rounded-full bg-primary" />
+                        AI-Powered
+                      </span>
+                    </div>
+
+                    {/* Thin separator */}
+                    <div className="h-px bg-border flex-shrink-0" />
+
+                    {/* HOW WE DO IT */}
+                    <div className="flex-shrink-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-[9px] font-bold text-primary uppercase tracking-[0.12em] bg-primary/8 border border-primary/15 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          Process
+                        </span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      
+                      <ol className="space-y-1.5">
+                        {service.howItWorks.slice(0, 3).map((step, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shadow-sm mt-0.5">
+                              {i + 1}
+                            </span>
+                            <span className="text-xs text-foreground leading-snug">{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+
+                    {/* WHAT YOU GET */}
+                    <div className="flex-shrink-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.12em] bg-emerald-500/8 border border-emerald-500/20 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          Value
+                        </span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      
+                      <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
+                        {service.benefits.slice(0, 4).map((benefit, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="flex-shrink-0 text-emerald-500 text-[10px] font-bold mt-0.5">
+                              ✓
+                            </span>
+                            <span className="text-xs text-foreground leading-snug">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="flex-1" />
+
+                    {/* TECH STACK */}
+                    {service.technologies && service.technologies.length > 0 && (
+                      <div className="flex-shrink-0">
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold mb-1.5">
+                          Built With
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {service.technologies.slice(0, 3).map((tech) => (
+                            <span key={tech} className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border font-medium">
+                              {tech}
+                            </span>
+                          ))}
+                          {service.technologies.length > 3 && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
+                              +{service.technologies.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CTA BUTTONS */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-border flex-shrink-0 mt-1">
+                      <Link
+                        href="/book-demo"
+                        className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors duration-200 group/link"
+                      >
+                        <span>Details</span>
+                        <span className="group-hover/link:translate-x-1 transition-transform duration-200 text-sm">
+                          →
+                        </span>
+                      </Link>
+                      <div className="flex-1" />
+                      <Link
+                        href="/book-demo"
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-white text-[11px] font-semibold shadow-md shadow-primary/20 hover:opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200"
+                      >
+                        Book Demo
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Bottom CTA */}
-      <section className="relative z-10 py-24 px-4">
+      <section className="relative z-10 py-20 px-4">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
