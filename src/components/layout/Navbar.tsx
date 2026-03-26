@@ -44,6 +44,7 @@ const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/#projects", label: "Projects" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -197,6 +198,16 @@ export function Navbar() {
               )}
             </AnimatePresence>
           </div>
+          <Link
+            href="/#projects"
+            className={cn(
+              "text-sm transition-opacity duration-200 hover:opacity-60",
+              pathname === "/#projects" && "opacity-100"
+            )}
+            style={{ color: "var(--text-primary)" }}
+          >
+            Projects
+          </Link>
           <Link
             href="/about"
             className={cn(

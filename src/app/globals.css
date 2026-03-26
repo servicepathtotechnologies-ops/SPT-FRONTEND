@@ -40,8 +40,8 @@
   --background: var(--bg-primary);
   --background-alt: var(--bg-secondary);
   --foreground: var(--text-primary);
-  --muted: var(--text-secondary);
-  --muted-foreground: var(--text-muted);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-secondary);
   --radius: 16px;
   --radius-sm: 8px;
   --font-sans: var(--font-inter), system-ui, sans-serif;
@@ -97,15 +97,25 @@
   --background: var(--bg-primary);
   --background-alt: var(--bg-secondary);
   --foreground: var(--text-primary);
-  --muted: var(--text-secondary);
-  --muted-foreground: var(--text-muted);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-secondary);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-alt: var(--background-alt);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-primary: var(--accent);
+  --color-card: var(--bg-card);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
@@ -285,4 +295,9 @@ body::before {
 
 .not-italic-fix {
   font-style: italic;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
